@@ -1,0 +1,31 @@
+{
+  "num_products": 22,
+  "num_transactions": 6051,
+  "date_range": [
+    "2025-01-01",
+    "2025-10-27"
+  ],
+  "train_holdout_cutoff": "2025-09-28",
+  "personas": {
+    "steady": 8,
+    "fast_mover": 5,
+    "seasonal": 4,
+    "slow_mover": 4,
+    "cold_start": 1
+  },
+  "engineered_scenarios": {
+    "urgent_reorder_sku": "SNK-001",
+    "historical_stockout_sku": "HH-001",
+    "historical_stockout_window_days": [
+      200,
+      212
+    ],
+    "promo_spike_sku": "SNK-002",
+    "promo_spike_window_days": [
+      100,
+      106
+    ],
+    "cold_start_sku": "BEV-007",
+    "cold_start_introduced_on_day": 292
+  }
+}

@@ -1,0 +1,23 @@
+sku,name,category,unit_cost,current_stock,reorder_lead_time_days,persona
+BEV-001,Cola 500ml,Beverages,0.6,35,3,fast_mover
+BEV-002,Bottled Water 1L,Beverages,0.35,99,3,fast_mover
+SNK-001,Potato Chips Classic,Snacks,0.9,72,4,fast_mover
+SNK-002,Chocolate Bar,Snacks,0.55,93,4,fast_mover
+HH-001,Paper Towels 2-pack,Household,2.1,15,5,steady
+HH-002,Dish Soap,Household,1.8,94,5,steady
+PC-001,Toothpaste,Personal Care,1.5,94,6,steady
+PC-002,Shampoo 250ml,Personal Care,2.8,79,6,steady
+HH-003,Trash Bags 20ct,Household,3.0,18,5,steady
+BEV-003,Iced Tea 500ml,Beverages,0.65,112,3,seasonal
+BEV-004,Hot Cocoa Mix,Beverages,1.2,26,5,seasonal
+PC-003,Sunscreen SPF50,Personal Care,4.5,26,7,seasonal
+SNK-003,Gourmet Crackers,Snacks,2.2,12,6,slow_mover
+BEV-005,Specialty Tea Box,Beverages,3.1,2,6,slow_mover
+HH-004,Novelty Air Freshener,Household,2.5,10,7,slow_mover
+APP-001,Graphic T-Shirt (Old Design),Apparel,6.0,9,10,slow_mover
+BEV-006,Energy Drink,Beverages,1.1,118,4,fast_mover
+SNK-004,Granola Bar Box,Snacks,2.4,61,5,steady
+PC-004,Hand Sanitizer,Personal Care,1.3,53,5,steady
+APP-002,Cotton Socks 3-pack,Apparel,3.5,31,8,steady
+APP-003,Baseball Cap,Apparel,5.0,18,9,seasonal
+BEV-007,New Flavor Soda,Beverages,0.7,136,3,cold_start
