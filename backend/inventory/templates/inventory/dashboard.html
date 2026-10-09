@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Decision AI Reorder Dashboard</title>
+<style>
+  :root {
+    --bg: #f6f5f2;
+    --panel: #ffffff;
+    --ink: #1c1a17;
+    --muted: #6b6558;
+    --line: #dedacf;
+    --accent: #b5502f;
+    --urgent: #b42318;
+    --urgent-bg: #fde8e6;
+    --soon: #92580a;
+    --soon-bg: #fdf0d5;
+    --ok: #17663a;
+    --ok-bg: #e3f4ea;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15130f;
+      --panel: #1e1c17;
+      --ink: #f1ede4;
+      --muted: #9c9484;
+      --line: #3a352c;
+      --accent: #e0713f;
+      --urgent: #ff8a80;
+      --urgent-bg: #3d1f1c;
+      --soon: #f5c26b;
+      --soon-bg: #3a2d14;
+      --ok: #7bd9a0;
+      --ok-bg: #16301f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.45;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 32px 16px 56px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 6px;
+  }
+  h1 { font-size: clamp(22px, 4vw, 30px); margin: 0 0 6px; letter-spacing: -.01em; }
+  .meta { color: var(--muted); font-size: 14px; margin: 0; }
+  .topbar { display: flex; gap: 16px; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; }
+  button {
+    font: inherit;
+    cursor: pointer;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    padding: 8px 14px;
+  }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:disabled { opacity: .6; cursor: default; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 24px 0; }
+  .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .tile .n { font-size: 30px; font-weight: 700; line-height: 1.1; }
+  .tile .l { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .tile.urgent { border-left: 4px solid var(--urgent); }
+  .tile.soon { border-left: 4px solid var(--soon); }
+  .tile.ok { border-left: 4px solid var(--ok); }
+  .tile.units { border-left: 4px solid var(--accent); }
+  .tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .tools button.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .tools input {
+    font: inherit;
+    margin-left: auto;
+    min-width: 200px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+  }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 720px; }
+  th, td { text-align: left; padding: 10px 14px; font-size: 14px; }
+  th {
+    font-size: 12px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.main td { border-top: 1px solid var(--line); padding-bottom: 2px; }
+  tr.main:first-child td { border-top: none; }
+  tr.why td { padding-top: 0; padding-bottom: 12px; color: var(--muted); font-size: 13px; }
+  .sku { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .name { font-weight: 600; }
+  .badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+  }
+  .badge.urgent { color: var(--urgent); background: var(--urgent-bg); }
+  .badge.soon { color: var(--soon); background: var(--soon-bg); }
+  .badge.ok { color: var(--ok); background: var(--ok-bg); }
+  .lowdata { font-size: 11px; color: var(--muted); margin-left: 6px; }
+  .banner { padding: 12px 16px; border-radius: 10px; margin: 16px 0; font-size: 14px; }
+  .banner.err { background: var(--urgent-bg); color: var(--urgent); border: 1px solid var(--urgent); }
+  .empty { padding: 40px 16px; text-align: center; color: var(--muted); }
+  .empty button { margin-top: 12px; }
+  footer { margin-top: 24px; color: var(--muted); font-size: 12.5px; max-width: 80ch; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Decision AI &middot; Inventory reorder</p>
+      <h1>What to reorder, and why</h1>
+      <p class="meta" id="meta">Loading&hellip;</p>
+    </div>
+    <button class="primary" id="gen">Regenerate recommendations</button>
+  </div>
+
+  <div id="banner"></div>
+  <div class="tiles" id="tiles"></div>
+
+  <div class="tools" id="tools"></div>
+  <div class="card" id="card"></div>
+
+  <footer>
+    Forecast uses the last 28 days of sales, weighted toward recent days. Reorder point is
+    demand over (supplier lead time + 7-day review cycle) plus safety stock for a 95% service
+    level. Data is simulated for the prototype.
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var RANK = { urgent: 0, soon: 1, ok: 2 };
+  var LABEL = { urgent: "Order now", soon: "Order soon", ok: "OK" };
+  var state = { rows: [], filter: "all", q: "", asOf: null, createdAt: null };
+
+  function h(tag, attrs) {
+    var node = document.createElement(tag);
+    attrs = attrs || {};
+    Object.keys(attrs).forEach(function (k) {
+      if (k === "class") node.className = attrs[k];
+      else if (k === "colspan") node.setAttribute("colspan", attrs[k]);
+      else node[k] = attrs[k];
+    });
+    for (var i = 2; i < arguments.length; i++) {
+      var c = arguments[i];
+      if (c === null || c === undefined) continue;
+      node.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    }
+    return node;
+  }
+
+  function cookie(name) {
+    var m = document.cookie.match("(?:^|; )" + name + "=([^;]*)");
+    return m ? decodeURIComponent(m[1]) : "";
+  }
+
+  function showError(msg) {
+    var b = document.getElementById("banner");
+    b.textContent = "";
+    if (msg) b.appendChild(h("div", { class: "banner err" }, msg));
+  }
+
+  function fmt(n, digits) {
+    if (n === null || n === undefined) return "—";
+    return Number(n).toLocaleString(undefined, { maximumFractionDigits: digits || 0 });
+  }
+
+  async function load() {
+    showError("");
+    var res = await fetch("/api/recommendations/?limit=500");
+    if (!res.ok) throw new Error("Could not load recommendations (" + res.status + ").");
+    var data = await res.json();
+    var all = data.results || [];
+    if (!all.length) {
+      state.rows = [];
+      state.asOf = null;
+      return;
+    }
+    var latest = all.reduce(function (m, r) { return r.as_of > m ? r.as_of : m; }, "");
+    var rows = all.filter(function (r) { return r.as_of === latest; });
+    rows.forEach(function (r) {
+      r.cover = r.daily_demand > 0 ? r.stock_on_hand / r.daily_demand : null;
+    });
+    rows.sort(function (a, b) {
+      if (RANK[a.urgency] !== RANK[b.urgency]) return RANK[a.urgency] - RANK[b.urgency];
+      var ac = a.cover === null ? Infinity : a.cover;
+      var bc = b.cover === null ? Infinity : b.cover;
+      return ac - bc;
+    });
+    state.rows = rows;
+    state.asOf = latest;
+    state.createdAt = rows.reduce(function (m, r) { return r.created_at > m ? r.created_at : m; }, "");
+  }
+
+  function renderMeta() {
+    var el = document.getElementById("meta");
+    if (!state.asOf) {
+      el.textContent = "No recommendations yet.";
+      return;
+    }
+    var when = state.createdAt ? new Date(state.createdAt).toLocaleString() : "";
+    el.textContent = "Forecast as of " + state.asOf + (when ? " · generated " + when : "");
+  }
+
+  function renderTiles() {
+    var box = document.getElementById("tiles");
+    box.textContent = "";
+    if (!state.rows.length) return;
+    var count = function (u) { return state.rows.filter(function (r) { return r.urgency === u; }).length; };
+    var units = state.rows.reduce(function (s, r) { return s + (r.should_reorder ? r.recommended_qty : 0); }, 0);
+    [
+      ["urgent", count("urgent"), "Order now (stock runs out before a new order lands)"],
+      ["soon", count("soon"), "Order soon (below reorder point)"],
+      ["ok", count("ok"), "OK for now"],
+      ["units", units, "Units recommended across all orders"]
+    ].forEach(function (t) {
+      box.appendChild(h("div", { class: "tile " + t[0] },
+        h("div", { class: "n" }, fmt(t[1])),
+        h("div", { class: "l" }, t[2])));
+    });
+  }
+
+  function renderTools() {
+    var box = document.getElementById("tools");
+    box.textContent = "";
+    if (!state.rows.length) return;
+    [["all", "All"], ["urgent", "Order now"], ["soon", "Order soon"], ["ok", "OK"]].forEach(function (f) {
+      var b = h("button", { class: state.filter === f[0] ? "active" : "" }, f[1]);
+      b.addEventListener("click", function () { state.filter = f[0]; render(); });
+      box.appendChild(b);
+    });
+    var input = h("input", { type: "search", placeholder: "Search product or SKU", value: state.q });
+    input.addEventListener("input", function () {
+      state.q = input.value;
+      renderTable();
+    });
+    box.appendChild(input);
+  }
+
+  function renderTable() {
+    var card = document.getElementById("card");
+    card.textContent = "";
+
+    if (!state.rows.length) {
+      var btn = h("button", { class: "primary" }, "Generate recommendations");
+      btn.addEventListener("click", generate);
+      card.appendChild(h("div", { class: "empty" },
+        h("div", {}, "No recommendations yet."), btn));
+      return;
+    }
+
+    var q = state.q.trim().toLowerCase();
+    var rows = state.rows.filter(function (r) {
+      if (state.filter !== "all" && r.urgency !== state.filter) return false;
+      return !q || r.name.toLowerCase().indexOf(q) >= 0 || r.sku.toLowerCase().indexOf(q) >= 0;
+    });
+
+    if (!rows.length) {
+      card.appendChild(h("div", { class: "empty" }, "No products match."));
+      return;
+    }
+
+    var head = h("tr", {},
+      h("th", {}, "Product"),
+      h("th", {}, "Status"),
+      h("th", { class: "num" }, "In stock"),
+      h("th", { class: "num" }, "Sold / day"),
+      h("th", { class: "num" }, "Days left"),
+      h("th", { class: "num" }, "Reorder point"),
+      h("th", { class: "num" }, "Order qty"));
+    var body = h("tbody");
+    rows.forEach(function (r) {
+      var status = h("span", { class: "badge " + r.urgency }, LABEL[r.urgency] || r.urgency);
+      var name = h("td", {},
+        h("div", { class: "name" }, r.name),
+        h("div", { class: "sku" }, r.sku));
+      var statusCell = h("td", {}, status,
+        r.confidence === "low" ? h("span", { class: "lowdata" }, "limited data") : null);
+      body.appendChild(h("tr", { class: "main" },
+        name, statusCell,
+        h("td", { class: "num" }, fmt(r.stock_on_hand)),
+        h("td", { class: "num" }, fmt(r.daily_demand, 1)),
+        h("td", { class: "num" }, r.cover === null ? "—" : fmt(r.cover, 1)),
+        h("td", { class: "num" }, fmt(r.reorder_point)),
+        h("td", { class: "num" }, r.should_reorder ? h("strong", {}, fmt(r.recommended_qty)) : "—")));
+      body.appendChild(h("tr", { class: "why" }, h("td", { colspan: 7 }, r.reason)));
+    });
+    card.appendChild(h("table", {}, h("thead", {}, head), body));
+  }
+
+  function render() {
+    renderMeta();
+    renderTiles();
+    renderTools();
+    renderTable();
+  }
+
+  async function generate() {
+    var btn = document.getElementById("gen");
+    btn.disabled = true;
+    btn.textContent = "Generating…";
+    try {
+      var res = await fetch("/api/recommendations/generate/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": cookie("csrftoken") },
+        body: "{}"
+      });
+      if (!res.ok) throw new Error("Generate failed (" + res.status + ").");
+      await load();
+      render();
+    } catch (e) {
+      showError(e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Regenerate recommendations";
+    }
+  }
+
+  document.getElementById("gen").addEventListener("click", generate);
+  load().then(render).catch(function (e) {
+    document.getElementById("meta").textContent = "";
+    showError(e.message);
+  });
+})();
+</script>
+</body>
+</html>

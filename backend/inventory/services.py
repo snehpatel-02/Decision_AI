@@ -22,6 +22,8 @@ def generate_recommendations(as_of):
     """Run the engine for every product as of a date and persist the results."""
     products, txns = load_frames()
     by_sku = {p.sku: p for p in Product.objects.all()}
+    # One set of recommendations per as-of date: re-running replaces, not duplicates.
+    Recommendation.objects.filter(as_of=pd.Timestamp(as_of).date()).delete()
     saved = []
     for rec in predict.recommend_all(as_of, products, txns):
         saved.append(Recommendation.objects.create(

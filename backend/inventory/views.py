@@ -1,6 +1,8 @@
 from datetime import date, timedelta
 
 from django.db.models import Sum
+from django.shortcuts import render
+from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
@@ -9,6 +11,12 @@ from . import services
 from .models import Product, Recommendation, Transaction
 from .serializers import (ProductSerializer, RecommendationSerializer,
                           TransactionSerializer)
+
+
+@ensure_csrf_cookie
+def dashboard(request):
+    """Single-page reorder dashboard; all data comes from the /api/ endpoints."""
+    return render(request, "inventory/dashboard.html")
 
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
